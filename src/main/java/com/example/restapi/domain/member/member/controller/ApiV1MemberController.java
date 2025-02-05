@@ -6,6 +6,8 @@ import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.global.Rq;
 import com.example.restapi.global.dto.RsData;
 import com.example.restapi.global.exception.ServiceException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,7 @@ public class ApiV1MemberController {
     private final MemberService memberService;
     private final Rq rq;
 
-    record JoinReqBody(String username, String password, String nickname) {}
+    public record JoinReqBody(String username, String password, String nickname) {}
 
     @PostMapping("/join")
     public RsData<MemberDto> join(@RequestBody JoinReqBody reqBody) {
@@ -37,17 +39,19 @@ public class ApiV1MemberController {
     }
 
 
-    record LoginReqBody(String username, String password) {}
+    public record LoginReqBody(@NotBlank String username, @NotBlank String password) {}
 
-    record LoginResBody(MemberDto item, String apiKey) {}
+    public record LoginResBody(MemberDto item, String apiKey) {}
 
     @PostMapping("/login")
-    public RsData<LoginResBody> login(@RequestBody LoginReqBody reqBody) {
+    public RsData<LoginResBody> login(@RequestBody @Valid LoginReqBody reqBody) {
 
-        Member member = memberService.findByUsername(reqBody.username()).get();
+        Member member = memberService.findByUsername(reqBody.username()).orElseThrow(
+                () -> new ServiceException("401-1", "잘못된 아이디입니다.")
+        );
 
         if(!member.getPassword().equals(reqBody.password())) {
-            throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
+            throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
         }
 
         return new RsData<>(
