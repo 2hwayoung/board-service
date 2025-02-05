@@ -26,7 +26,9 @@ public class ApiV1PostController {
 
     @GetMapping("{id}")
     public RsData<PostDto> getItem(@PathVariable long id) {
-        Post post = postService.getItem(id).get();
+        Post post = postService.getItem(id).orElseThrow(
+                () -> new ServiceException("404-1", "존재하지 않는 글입니다.")
+        );
 
         return new RsData<>(
                 "200-1",
