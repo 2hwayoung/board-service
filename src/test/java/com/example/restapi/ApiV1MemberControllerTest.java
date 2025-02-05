@@ -46,25 +46,29 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data.modifiedDate").value(matchesPattern(member.getModifiedDate().toString().replaceAll("0+$", "") + ".*")));
     }
 
-    @Test
-    @DisplayName("회원 가입")
-    void join() throws Exception {
-
-        ResultActions resultActions = mvc
+    private ResultActions joinRequest(String username, String password, String nickname) throws Exception {
+        return mvc
                 .perform(
                         post("/api/v1/members/join")
                                 .content("""
                                         {
-                                            "username": "userNew",
-                                            "password": "1234",
-                                            "nickname": "무명"
+                                            "username": "%s",
+                                            "password": "%s",
+                                            "nickname": "%s"
                                         }
-                                        """.stripIndent())
+                                        """.formatted(username, password, nickname).stripIndent())
                                 .contentType(
                                         new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
                                 )
                 )
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원 가입")
+    void join() throws Exception {
+
+        ResultActions resultActions = joinRequest("userNew", "1234", "무명");
 
         Member member = memberService.findByUsername("userNew").get();
 
@@ -85,21 +89,7 @@ public class ApiV1MemberControllerTest {
     @DisplayName("회원 가입2 - username이 이미 존재하는 케이스")
     void join2() throws Exception {
 
-        ResultActions resultActions = mvc
-                .perform(
-                        post("/api/v1/members/join")
-                                .content("""
-                                        {
-                                            "username": "user1",
-                                            "password": "1234",
-                                            "nickname": "무명"
-                                        }
-                                        """.stripIndent())
-                                .contentType(
-                                        new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
-                                )
-                )
-                .andDo(print());
+        ResultActions resultActions = joinRequest("user1", "1234", "무명");
 
         resultActions
                 .andExpect(status().isConflict())
@@ -110,8 +100,27 @@ public class ApiV1MemberControllerTest {
 
     }
 
+    @Test
+    @DisplayName("회원 가입3 - 입력 데이터 누락")
+    void join3() throws Exception {
 
-    private ResultActions loingRequest(String username, String password) throws Exception {
+        ResultActions resultActions = joinRequest("", "", "");
+
+        resultActions
+                .andExpect(status().isBadRequest())
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("join"))
+                .andExpect(jsonPath("$.code").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        nickname : NotBlank : must not be blank
+                        password : NotBlank : must not be blank
+                        username : NotBlank : must not be blank
+                        """.trim().stripIndent()));
+
+    }
+
+
+    private ResultActions loginRequest(String username, String password) throws Exception {
         return mvc
                 .perform(
                         post("/api/v1/members/login")
@@ -138,7 +147,7 @@ public class ApiV1MemberControllerTest {
         String password = "user11234";
 
         // 요청
-        ResultActions resultActions = loingRequest(username, password);
+        ResultActions resultActions = loginRequest(username, password);
         Member member = memberService.findByUsername(username).get();
 
         // 응답. (요청 처리 결과)
@@ -165,7 +174,7 @@ public class ApiV1MemberControllerTest {
         String username = "user1";
         String password = "1234";
 
-        ResultActions resultActions = loingRequest(username, password);
+        ResultActions resultActions = loginRequest(username, password);
 
         resultActions
                 .andExpect(status().isUnauthorized())
@@ -182,7 +191,7 @@ public class ApiV1MemberControllerTest {
         String username = "aaaa";
         String password = "1234";
 
-        ResultActions resultActions = loingRequest(username, password);
+        ResultActions resultActions = loginRequest(username, password);
 
         resultActions
                 .andExpect(status().isUnauthorized())
@@ -199,7 +208,7 @@ public class ApiV1MemberControllerTest {
         String username = "";
         String password = "123123";
 
-        ResultActions resultActions = loingRequest(username, password);
+        ResultActions resultActions = loginRequest(username, password);
 
         resultActions
                 .andExpect(status().isBadRequest())
@@ -216,7 +225,7 @@ public class ApiV1MemberControllerTest {
         String username = "1234";
         String password = "";
 
-        ResultActions resultActions = loingRequest(username, password);
+        ResultActions resultActions = loginRequest(username, password);
 
         resultActions
                 .andExpect(status().isBadRequest())
