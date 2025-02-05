@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -150,5 +151,86 @@ public class ApiV1PostControllerTest {
                         content : NotBlank : must not be blank
                         title : NotBlank : must not be blank
                         """.trim().stripIndent()));
+    }
+
+
+    private ResultActions modifyRequest(String apiKey, long postId, String title, String content) throws Exception {
+        return mvc
+                .perform(put("/api/v1/posts/%d".formatted(postId))
+                        .header("Authorization", "Bearer "+apiKey)
+                        .content("""
+                                {
+                                    "title": "%s",
+                                    "content": "%s"
+                                }
+                                """
+                                .formatted(title, content)
+                                .stripIndent())
+                        .contentType(
+                                new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                        ))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("글 수정1")
+    void modify1() throws Exception {
+        long postId = 1;
+        ResultActions resultActions = modifyRequest("user1", postId, "(모집마감)축구 하실분 모집합니다", "모집이 마감되었습니다.");
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%d번 글 수정이 완료되었습니다.".formatted(postId)));
+
+        Post post = postService.getItem(postId).orElseThrow();
+        checkPost(resultActions, post);
+    }
+
+    @Test
+    @DisplayName("글 수정2 - no apiKey")
+    void modify2() throws Exception {
+        long postId = 1;
+        ResultActions resultActions = modifyRequest("wrong author", postId, "(모집마감)축구 하실분 모집합니다", "모집이 마감되었습니다.");
+
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(jsonPath("$.code").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
+    }
+
+    @Test
+    @DisplayName("글 수정3 - no input data")
+    void modify3() throws Exception {
+        long postId = 1;
+        ResultActions resultActions = modifyRequest("user1", postId, "", "");
+
+        resultActions
+                .andExpect(status().isBadRequest())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(jsonPath("$.code").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        content : NotBlank : must not be blank
+                        title : NotBlank : must not be blank
+                        """.trim().stripIndent()));
+    }
+
+    @Test
+    @DisplayName("글 수정4 - no permission")
+    void modify4() throws Exception {
+        long postId = 1;
+        ResultActions resultActions = modifyRequest("user2", postId, "(모집마감)축구 하실분 모집합니다", "모집이 마감되었습니다.");
+
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(jsonPath("$.code").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("자신이 작성한 글만 수정 가능합니다."));
     }
 }
