@@ -23,4 +23,15 @@ public class ApiV1PostController {
 
     private final PostService postService;
     private final Rq rq;
+
+    @GetMapping("{id}")
+    public RsData<PostDto> getItem(@PathVariable long id) {
+        Post post = postService.getItem(id).get();
+
+        return new RsData<>(
+                "200-1",
+                "%d번 글을 조회하였습니다.".formatted(id),
+                new PostDto(post)
+        );
+    }
 }
