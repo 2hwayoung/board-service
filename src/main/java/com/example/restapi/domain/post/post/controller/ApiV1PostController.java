@@ -29,6 +29,10 @@ public class ApiV1PostController {
         Post post = postService.getItem(id).orElseThrow(
                 () -> new ServiceException("404-1", "존재하지 않는 글입니다.")
         );
+        if (!post.isPublished()) {
+            Member actor = rq.getAuthenticatedActor();
+            post.canAccess(actor);
+        }
 
         return new RsData<>(
                 "200-1",
@@ -37,12 +41,12 @@ public class ApiV1PostController {
         );
     }
 
-    public record writeReqBody(@NotBlank String title, @NotBlank String content) {}
+    public record writeReqBody(@NotBlank String title, @NotBlank String content, boolean published) {}
 
     @PostMapping()
     public RsData<PostDto> write(@RequestBody @Valid writeReqBody reqBody) {
         Member actor = rq.getAuthenticatedActor();
-        Post post = postService.write(actor, reqBody.title(), reqBody.content());
+        Post post = postService.write(actor, reqBody.title(), reqBody.content(), reqBody.published());
         return new RsData<>(
                 "201-1",
                 "%d번 글 작성이 완료되었습니다.".formatted(post.getId()),
