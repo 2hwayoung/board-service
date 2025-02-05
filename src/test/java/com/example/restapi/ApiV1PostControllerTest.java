@@ -134,4 +134,21 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
     }
+
+    @Test
+    @DisplayName("글 작성3 - no input data")
+    void write3() throws Exception {
+
+        ResultActions resultActions = writeRequest("user1", "", "");
+
+        resultActions
+                .andExpect(status().isBadRequest())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(jsonPath("$.code").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        content : NotBlank : must not be blank
+                        title : NotBlank : must not be blank
+                        """.trim().stripIndent()));
+    }
 }

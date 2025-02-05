@@ -37,10 +37,10 @@ public class ApiV1PostController {
         );
     }
 
-    public record writeReqBody(String title, String content) {}
+    public record writeReqBody(@NotBlank String title, @NotBlank String content) {}
 
     @PostMapping()
-    public RsData<PostDto> write(@RequestBody writeReqBody reqBody) {
+    public RsData<PostDto> write(@RequestBody @Valid writeReqBody reqBody) {
         Member author = rq.getAuthenticatedActor();
         Post post = postService.write(author, reqBody.title(), reqBody.content());
         return new RsData<>(
