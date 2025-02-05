@@ -36,4 +36,17 @@ public class ApiV1PostController {
                 new PostDto(post)
         );
     }
+
+    public record writeReqBody(String title, String content) {}
+
+    @PostMapping()
+    public RsData<PostDto> write(@RequestBody writeReqBody reqBody) {
+        Member author = rq.getAuthenticatedActor();
+        Post post = postService.write(author, reqBody.title(), reqBody.content());
+        return new RsData<>(
+                "201-1",
+                "%d번 글 작성이 완료되었습니다.".formatted(post.getId()),
+                new PostDto(post)
+        );
+    }
 }
