@@ -48,7 +48,7 @@ public class ApiV1CommentController {
     }
 
 
-    record WriteReqBody(String content) {
+    public record WriteReqBody(String content) {
     }
 
     @PostMapping
