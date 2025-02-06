@@ -1,10 +1,7 @@
 package com.example.restapi;
 
-import com.example.restapi.domain.member.member.entity.Member;
-import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.domain.post.comment.controller.ApiV1CommentController;
 import com.example.restapi.domain.post.comment.entity.Comment;
-import com.example.restapi.domain.post.post.controller.ApiV1PostController;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.service.PostService;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,9 +16,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
