@@ -45,6 +45,8 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.content").value(post.getContent()))
                 .andExpect(jsonPath("$.data.authorId").value(post.getAuthor().getId()))
                 .andExpect(jsonPath("$.data.authorName").value(post.getAuthor().getNickname()))
+                .andExpect(jsonPath("$.data.published").value(post.isPublished()))
+                .andExpect(jsonPath("$.data.listed").value(post.isListed()))
                 .andExpect(jsonPath("$.data.createdDate").value(matchesPattern(post.getCreatedDate().toString().replaceAll("0+$", "") + ".*")))
                 .andExpect(jsonPath("$.data.modifiedDate").value(matchesPattern(post.getModifiedDate().toString().replaceAll("0+$", "") + ".*")));
     }
@@ -77,8 +79,8 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 단건 조회 2 - 다른 유저의 비공개글 조회")
     void item2() throws Exception {
-       long postId = 2;
-        ResultActions resultActions = itemRequest(postId, "user2");
+       long postId = 3;
+        ResultActions resultActions = itemRequest(postId, "user1");
 
         resultActions
                 .andExpect(status().isForbidden())
@@ -109,7 +111,9 @@ public class ApiV1PostControllerTest {
                         .content("""
                                 {
                                     "title": "%s",
-                                    "content": "%s"
+                                    "content": "%s",
+                                    "published": true,
+                                    "listed": true
                                 }
                                 """
                                 .formatted(title, content)
@@ -176,7 +180,9 @@ public class ApiV1PostControllerTest {
                         .content("""
                                 {
                                     "title": "%s",
-                                    "content": "%s"
+                                    "content": "%s",
+                                    "published": true,
+                                    "listed": true
                                 }
                                 """
                                 .formatted(title, content)
