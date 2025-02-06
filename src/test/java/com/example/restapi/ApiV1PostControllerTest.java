@@ -1,5 +1,7 @@
 package com.example.restapi;
 
+import com.example.restapi.domain.member.member.entity.Member;
+import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.domain.post.post.controller.ApiV1PostController;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.service.PostService;
@@ -8,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,6 +18,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -36,6 +40,151 @@ public class ApiV1PostControllerTest {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private MemberService memberService;
+
+    private void checkPosts(ResultActions resultActions, List<Post> posts) throws Exception {
+        for(int i = 0; i < posts.size(); i++) {
+            Post post = posts.get(i);
+            resultActions
+                .andExpect(jsonPath("$.data.items[%d]".formatted(i)).exists())
+                .andExpect(jsonPath("$.data.items[%d].id".formatted(i)).value(post.getId()))
+                .andExpect(jsonPath("$.data.items[%d].title".formatted(i)).value(post.getTitle()))
+                .andExpect(jsonPath("$.data.items[%d].content".formatted(i)).doesNotExist())
+                .andExpect(jsonPath("$.data.items[%d].authorId".formatted(i)).value(post.getAuthor().getId()))
+                .andExpect(jsonPath("$.data.items[%d].authorName".formatted(i)).value(post.getAuthor().getNickname()))
+                .andExpect(jsonPath("$.data.items[%d].published".formatted(i)).value(post.isPublished()))
+                .andExpect(jsonPath("$.data.items[%d].listed".formatted(i)).value(post.isListed()))
+                .andExpect(jsonPath("$.data.items[%d].createdDate".formatted(i)).value(matchesPattern(post.getCreatedDate().toString().replaceAll("0+$", "") + ".*")))
+                .andExpect(jsonPath("$.data.items[%d].modifiedDate".formatted(i)).value(matchesPattern(post.getModifiedDate().toString().replaceAll("0+$", "") + ".*")));
+        }
+    }
+
+    @Test
+    @DisplayName("글 다건 조회1")
+    void items1() throws Exception {
+        int page = 1;
+        int pageSize = 3;
+        ResultActions resultActions = mvc
+                .perform(get("/api/v1/posts")
+                        .param("page", String.valueOf(page))
+                        .param("pageSize", String.valueOf(pageSize)))
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("글 목록 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.items.length()").value(pageSize))
+                .andExpect(jsonPath("$.data.currentPageNo").value(page))
+                .andExpect(jsonPath("$.data.totalPages").isNumber());
+
+        Page<Post> postPage = postService.getListedItems(page, pageSize, "", "");
+        List<Post> posts = postPage.getContent();
+        checkPosts(resultActions, posts);
+    }
+
+    @Test
+    @DisplayName("글 다건 조회2 - 검색 - 제목")
+    void items2() throws Exception {
+        int page = 1;
+        int pageSize = 3;
+        String keywordType = "title";
+        String keyword = "title";
+
+        ResultActions resultActions = mvc
+                .perform(get("/api/v1/posts")
+                        .param("page", String.valueOf(page))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("keywordType", keywordType)
+                        .param("keyword", keyword))
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("글 목록 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.items.length()").value(pageSize))
+                .andExpect(jsonPath("$.data.currentPageNo").value(page))
+                .andExpect(jsonPath("$.data.totalPages").value(3))
+                .andExpect(jsonPath("$.data.totalItems").value(7));
+
+        Page<Post> postPage = postService.getListedItems(page, pageSize, keywordType, keyword);
+        List<Post> posts = postPage.getContent();
+        checkPosts(resultActions, posts);
+    }
+
+    @Test
+    @DisplayName("글 다건 조회3 - 검색 - 내용")
+    void items3() throws Exception {
+        int page = 1;
+        int pageSize = 3;
+        String keywordType = "content";
+        String keyword = "content";
+
+        ResultActions resultActions = mvc
+                .perform(get("/api/v1/posts")
+                        .param("page", String.valueOf(page))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("keywordType", keywordType)
+                        .param("keyword", keyword))
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("글 목록 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.items.length()").value(pageSize))
+                .andExpect(jsonPath("$.data.currentPageNo").value(page))
+                .andExpect(jsonPath("$.data.totalPages").value(3))
+                .andExpect(jsonPath("$.data.totalItems").value(7));
+
+        Page<Post> postPage = postService.getListedItems(page, pageSize, keywordType, keyword);
+        List<Post> posts = postPage.getContent();
+        checkPosts(resultActions, posts);
+    }
+
+    @Test
+    @DisplayName("글 다건 조회 4 - 내가 작성한 글 조회")
+    void items4() throws Exception {
+        int page = 1;
+        int pageSize = 3;
+        String keywordType = "";
+        String keyword = "";
+        String apiKey = "user1";
+
+        ResultActions resultActions = mvc
+                .perform(get("/api/v1/posts/mine")
+                        .header("Authorization", "Bearer " + apiKey)
+                        .param("page", String.valueOf(page))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("keywordType", keywordType)
+                        .param("keyword", keyword))
+                .andDo(print());
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getMyItems"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("내 글 목록 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.items.length()").value(pageSize))
+                .andExpect(jsonPath("$.data.currentPageNo").value(page))
+                .andExpect(jsonPath("$.data.totalPages").value(2))
+                .andExpect(jsonPath("$.data.totalItems").value(5));
+
+        Member author = memberService.findByApiKey(apiKey).get();
+        Page<Post> postPage = postService.getMyItems(author, page, pageSize, keywordType, keyword);
+        List<Post> posts = postPage.getContent();
+        checkPosts(resultActions, posts);
+    }
 
     private void checkPost(ResultActions resultActions, Post post) throws Exception {
         resultActions
@@ -80,7 +229,7 @@ public class ApiV1PostControllerTest {
     @DisplayName("글 단건 조회 2 - 다른 유저의 비공개글 조회")
     void item2() throws Exception {
        long postId = 3;
-        ResultActions resultActions = itemRequest(postId, "user1");
+        ResultActions resultActions = itemRequest(postId, "user2");
 
         resultActions
                 .andExpect(status().isForbidden())

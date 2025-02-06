@@ -4,6 +4,8 @@ import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,38 @@ public class PostService {
 
     public List<Post> getItems() {
         return postRepository.findAll();
+    }
+
+    public Page<Post> getListedItems(int page, int pageSize, String keywordType, String keyword) {
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
+
+        if (keyword.isBlank()) {
+            return postRepository.findByListed(true, pageRequest);
+        }
+
+        String likeKeyword = "%" + keyword + "%";
+
+        return switch (keywordType) {
+            case "content" -> postRepository.findByListedAndContentLike(true, likeKeyword, pageRequest);
+            case "title" -> postRepository.findByListedAndTitleLike(true, likeKeyword, pageRequest);
+            default -> postRepository.findByListed(true, pageRequest);
+        };
+    }
+
+    public Page<Post> getMyItems(Member author, int page, int pageSize, String keywordType, String keyword) {
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
+
+        if (keyword.isBlank()) {
+            return postRepository.findByAuthor(author, pageRequest);
+        }
+
+        String likeKeyword = "%" + keyword + "%";
+
+        return switch (keywordType) {
+            case "content" -> postRepository.findByAuthorAndContentLike(author, likeKeyword, pageRequest);
+            case "title" -> postRepository.findByAuthorAndTitleLike(author, likeKeyword, pageRequest);
+            default -> postRepository.findByAuthor(author, pageRequest);
+        };
     }
 
     public Optional<Post> getItem(long id) {
