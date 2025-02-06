@@ -14,6 +14,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class ApiV1PostController {
     private final Rq rq;
 
     @GetMapping()
+    @Transactional(readOnly = true)
     public RsData<PageDto> getItems(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int pageSize,
@@ -43,6 +45,7 @@ public class ApiV1PostController {
     }
 
     @GetMapping("/mine")
+    @Transactional(readOnly = true)
     public RsData<PageDto> getMyItems(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int pageSize,
