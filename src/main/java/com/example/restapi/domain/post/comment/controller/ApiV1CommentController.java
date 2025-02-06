@@ -8,7 +8,6 @@ import com.example.restapi.domain.post.post.service.PostService;
 import com.example.restapi.global.Rq;
 import com.example.restapi.global.dto.RsData;
 import com.example.restapi.global.exception.ServiceException;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +21,9 @@ public class ApiV1CommentController {
 
     private final PostService postService;
     private final Rq rq;
-    private final EntityManager em;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public List<CommentDto> getItems(@PathVariable long postId) {
 
         Post post = postService.getItem(postId).orElseThrow(
@@ -38,6 +37,7 @@ public class ApiV1CommentController {
     }
 
     @GetMapping("{id}")
+    @Transactional(readOnly = true)
     public CommentDto getItem(@PathVariable long postId, @PathVariable long id) {
 
         Post post = postService.getItem(postId).orElseThrow(
@@ -50,8 +50,7 @@ public class ApiV1CommentController {
     }
 
 
-    record WriteReqBody(String content) {
-    }
+    public record WriteReqBody(String content) {}
 
     @PostMapping
     @Transactional
@@ -120,7 +119,9 @@ public class ApiV1CommentController {
                 () -> new ServiceException("404-1", "존재하지 않는 게시글입니다.")
         );
 
-        return post.addComment(actor, content);
+        Comment comment = post.addComment(actor, content);
+
+        return comment;
     }
 
 

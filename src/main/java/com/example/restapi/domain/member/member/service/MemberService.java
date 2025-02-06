@@ -33,6 +33,10 @@ public class MemberService {
         return memberRepository.findByUsername(username);
     }
 
+    public Optional<Member> findById(long id) {
+        return memberRepository.findById(id);
+    }
+
     public Optional<Member> findByApiKey(String apiKey) {
         return memberRepository.findByApiKey(apiKey);
     }

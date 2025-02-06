@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -22,6 +23,8 @@ public class Post extends BaseTime {
     private Member author;
     private String title;
     private String content;
+    private boolean published;
+    private boolean listed;
 
     @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
@@ -77,5 +80,21 @@ public class Post extends BaseTime {
         if (actor.equals(this.author)) return;
 
         throw new ServiceException("403-1", "자신이 작성한 글만 삭제 가능합니다.");
+    }
+
+    public void canAccess(Member actor) {
+        if (actor.isAdmin()) return;
+        if (actor.equals(this.author)) return;
+        throw new ServiceException("403-1", "비공개 설정된 글입니다.");
+    }
+
+    public Comment getLatestComment() {
+        return comments
+                .stream()
+                .sorted(Comparator.comparing(Comment::getId).reversed())
+                .findFirst()
+                .orElseThrow(
+                        () -> new ServiceException("404-2", "존재하지 않는 댓글입니다.")
+                );
     }
 }
