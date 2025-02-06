@@ -9,6 +9,7 @@ import com.example.restapi.global.exception.ServiceException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -66,7 +67,6 @@ public class ApiV1MemberController {
 
     @GetMapping("/me")
     public RsData<MemberDto> me() {
-
         Member actor = rq.getAuthenticatedActor();
 
         return new RsData<>(

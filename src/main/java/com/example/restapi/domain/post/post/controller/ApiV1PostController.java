@@ -127,6 +127,5 @@ public class ApiV1PostController {
                 "200-1",
                 "%d번 글 삭제가 완료되었습니다.".formatted(id)
         );
-
     }
 }

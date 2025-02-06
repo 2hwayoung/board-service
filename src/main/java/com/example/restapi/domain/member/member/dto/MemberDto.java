@@ -13,7 +13,6 @@ public class MemberDto {
     private LocalDateTime modifiedDate;
     private String nickname;
 
-
     public MemberDto(Member member) {
         this.id = member.getId();
         this.createdDate = member.getCreatedDate();
