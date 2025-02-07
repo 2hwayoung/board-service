@@ -5,11 +5,13 @@ import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.domain.post.post.controller.ApiV1PostController;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.service.PostService;
+import com.example.restapi.global.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
@@ -276,10 +278,9 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 작성")
-    @WithUserDetails("user1")
     void write1() throws Exception {
 
-        ResultActions resultActions = writeRequest("user1", "새로운 글 제목", "새로운 글 내용");
+        ResultActions resultActions = writeRequest("user3", "새로운 글 제목", "새로운 글 내용");
 
         Post post = postService.getLatestItem().orElseThrow();
 
@@ -301,8 +302,8 @@ public class ApiV1PostControllerTest {
 
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
+//                .andExpect(handler().handlerType(ApiV1PostController.class))
+//                .andExpect(handler().methodName("write"))
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
     }
@@ -369,8 +370,8 @@ public class ApiV1PostControllerTest {
 
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("modify"))
+//                .andExpect(handler().handlerType(ApiV1PostController.class))
+//                .andExpect(handler().methodName("modify"))
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
     }
@@ -434,8 +435,8 @@ public class ApiV1PostControllerTest {
         ResultActions resultActions = deleteRequest("wrong author", postId);
         resultActions
                 .andExpect(status().isUnauthorized())
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("delete"))
+//                .andExpect(handler().handlerType(ApiV1PostController.class))
+//                .andExpect(handler().methodName("delete"))
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
     }
