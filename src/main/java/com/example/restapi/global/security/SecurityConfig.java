@@ -53,7 +53,19 @@ public class SecurityConfig {
                                             );
                                         }
                                 )
+                                .accessDeniedHandler(
+                                        (request, response, accessDeniedException) -> {
+                                            response.setContentType("application/json;charset=utf-8");
+                                            response.setStatus(403);
+                                            response.getWriter().write(
+                                                    Utils.Json.toString(
+                                                            new RsData<>("403-1", "접근 권한이 없습니다.")
+                                                    )
+                                            );
+                                        }
+                                )
                 )
+
         ;
         return http.build();
     }
