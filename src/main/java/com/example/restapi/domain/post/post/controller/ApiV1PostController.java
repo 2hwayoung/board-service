@@ -1,6 +1,7 @@
 package com.example.restapi.domain.post.post.controller;
 
 import com.example.restapi.domain.member.member.entity.Member;
+import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.domain.post.post.dto.PageDto;
 import com.example.restapi.domain.post.post.dto.PostDto;
 import com.example.restapi.domain.post.post.dto.PostWithContentDto;
@@ -14,9 +15,13 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 
@@ -26,6 +31,7 @@ import java.util.List;
 public class ApiV1PostController {
 
     private final PostService postService;
+    private final MemberService memberService;
     private final Rq rq;
 
     @GetMapping()
@@ -51,7 +57,7 @@ public class ApiV1PostController {
             @RequestParam(defaultValue = "3") int pageSize,
             @RequestParam(defaultValue = "title") String keywordType,
             @RequestParam(defaultValue = "") String keyword) {
-        Member actor = rq.getAuthenticatedActor();
+        Member actor = rq.getCurrentActor();
         Page<Post> postPage = postService.getMyItems(actor, page, pageSize, keywordType, keyword);
 
         return new RsData<>(
@@ -68,7 +74,7 @@ public class ApiV1PostController {
                 () -> new ServiceException("404-1", "존재하지 않는 글입니다.")
         );
         if (!post.isPublished()) {
-            Member actor = rq.getAuthenticatedActor();
+            Member actor = rq.getCurrentActor();
             post.canAccess(actor);
         }
 
@@ -87,7 +93,8 @@ public class ApiV1PostController {
 
     @PostMapping()
     public RsData<PostWithContentDto> write(@RequestBody @Valid writeReqBody reqBody) {
-        Member actor = rq.getAuthenticatedActor();
+        Member actor = rq.getCurrentActor();
+
         Post post = postService.write(actor, reqBody.title(), reqBody.content(), reqBody.published(), reqBody.listed());
         return new RsData<>(
                 "201-1",
@@ -100,7 +107,7 @@ public class ApiV1PostController {
 
     @PutMapping("{id}")
     public RsData<PostWithContentDto> modify(@PathVariable long id, @RequestBody @Valid modifyReqBody reqBody) {
-        Member actor = rq.getAuthenticatedActor();
+        Member actor = rq.getCurrentActor();
         Post post = postService.getItem(id).orElseThrow(
                 () -> new ServiceException("404-1", "존재하지 않는 글입니다.")
         );
@@ -118,7 +125,7 @@ public class ApiV1PostController {
 
     @DeleteMapping("{id}")
     public RsData<PostWithContentDto> delete(@PathVariable long id) {
-        Member actor = rq.getAuthenticatedActor();
+        Member actor = rq.getCurrentActor();
         Post post = postService.getItem(id).orElseThrow(
                 () -> new ServiceException("404-1", "존재하지 않는 글입니다.")
         );
