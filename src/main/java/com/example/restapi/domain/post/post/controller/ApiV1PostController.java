@@ -106,6 +106,7 @@ public class ApiV1PostController {
     public record modifyReqBody(@NotBlank String title, @NotBlank String content) {}
 
     @PutMapping("{id}")
+    @Transactional
     public RsData<PostWithContentDto> modify(@PathVariable long id, @RequestBody @Valid modifyReqBody reqBody) {
         Member actor = rq.getCurrentActor();
         Post post = postService.getItem(id).orElseThrow(
