@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -359,6 +360,7 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 수정1")
+    @Rollback(false)
     void modify1() throws Exception {
         long postId = 1;
         ResultActions resultActions = modifyRequest(authToken, postId, "(모집마감)축구 하실분 모집합니다", "모집이 마감되었습니다.");

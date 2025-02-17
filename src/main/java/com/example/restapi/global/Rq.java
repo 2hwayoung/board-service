@@ -3,6 +3,7 @@ package com.example.restapi.global;
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.global.exception.ServiceException;
+import com.example.restapi.global.security.SecurityUser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,21 +26,8 @@ public class Rq {
     private final HttpServletRequest request;
     private final MemberService memberService;
 
-    public Member getAuthenticatedActor() {
-
-        String authorizationValue = request.getHeader("Authorization");
-        String apiKey = authorizationValue.substring("Bearer ".length());
-        Optional<Member> opActor = memberService.findByApiKey(apiKey);
-
-        if(opActor.isEmpty()) {
-            throw new ServiceException("401-1", "잘못된 인증키입니다.");
-        }
-
-        return opActor.get();
-    }
-
-    public void setLogin(String username) {
-        UserDetails user = new User(username, "", List.of());
+    public void setLogin(Member actor) {
+        UserDetails user = new SecurityUser(actor.getId(), actor.getUsername(), "", List.of());
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
@@ -53,18 +41,15 @@ public class Rq {
             throw new ServiceException("401-2", "로그인이 필요합니다.");
         }
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        Object principal = auth.getPrincipal();
 
-        if (userDetails == null) {
-            throw new ServiceException("401-3", "로그인이 필요합니다.");
+        if(!(principal instanceof SecurityUser user)) {
+            throw new ServiceException("401-3", "잘못된 인증 정보입니다");
         }
 
-        String username = userDetails.getUsername();
-
-        Optional<Member> opMember = memberService.findByUsername(username);
-        if (opMember.isEmpty()) {
-            throw new ServiceException("401-3", "해당 유저가 없습니다.");
-        }
-        return opMember.get();
+        return Member.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .build();
     }
 }

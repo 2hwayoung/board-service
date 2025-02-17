@@ -259,7 +259,10 @@ public class ApiV1MemberControllerTest {
     @DisplayName("내 정보 조회")
     void me1() throws Exception {
 
-        ResultActions resultActions = meRequest(authToken);
+        String apiKey = loginedMember.getApiKey();
+        String token = memberService.getAuthToken(loginedMember);
+
+        ResultActions resultActions = meRequest(token);
 
         resultActions
                 .andExpect(status().isOk())
