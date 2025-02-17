@@ -290,6 +290,7 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 작성")
+    @WithUserDetails("user3")
     void write1() throws Exception {
 
         ResultActions resultActions = writeRequest(authToken, "새로운 글 제목", "새로운 글 내용");
@@ -484,5 +485,21 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.msg").value("%d번 글 삭제가 완료되었습니다.".formatted(postId)));
     }
 
-
+    @Test
+    @DisplayName("통계")
+    void statistics() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                        get("/api/v1/posts/statistics")
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getStatistics"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("통계 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.postCount").value(10))
+                .andExpect(jsonPath("$.data.postPublishedCount").value(10))
+                .andExpect(jsonPath("$.data.postListedCount").value(10));
+    }
 }

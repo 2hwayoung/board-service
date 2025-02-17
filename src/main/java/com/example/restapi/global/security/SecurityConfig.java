@@ -32,6 +32,8 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/api/*/members/join", "/api/*/members/login")
                                 .permitAll()
+                                .requestMatchers("/api/*/posts/statistics")
+                                .permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
@@ -40,6 +42,7 @@ public class SecurityConfig {
                                 XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN
                         )))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling
                                 .authenticationEntryPoint(
