@@ -10,6 +10,9 @@ import com.example.restapi.domain.post.post.service.PostService;
 import com.example.restapi.global.Rq;
 import com.example.restapi.global.dto.RsData;
 import com.example.restapi.global.exception.ServiceException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
-
+@Tag(name = "ApiV1PostController", description = "글 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
@@ -34,12 +38,16 @@ public class ApiV1PostController {
     private final MemberService memberService;
     private final Rq rq;
 
+    @Operation(
+            summary = "글 목록 조회",
+            description = "페이징 처리와 검색 가능"
+    )
     @GetMapping()
     @Transactional(readOnly = true)
     public RsData<PageDto> getItems(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int pageSize,
-            @RequestParam(defaultValue = "title") String keywordType,
+            @RequestParam(defaultValue = "title") SearchKeywordType keywordType,
             @RequestParam(defaultValue = "") String keyword) {
         Page<Post> postPage = postService.getListedItems(page, pageSize, keywordType, keyword);
 
@@ -50,12 +58,16 @@ public class ApiV1PostController {
         );
     }
 
+    @Operation(
+            summary = "내 글 목록 조회",
+            description = "페이징 처리와 검색 가능"
+    )
     @GetMapping("/mine")
     @Transactional(readOnly = true)
     public RsData<PageDto> getMyItems(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int pageSize,
-            @RequestParam(defaultValue = "title") String keywordType,
+            @RequestParam(defaultValue = "title") SearchKeywordType keywordType,
             @RequestParam(defaultValue = "") String keyword) {
         Member actor = rq.getCurrentActor();
         Page<Post> postPage = postService.getMyItems(actor, page, pageSize, keywordType, keyword);
@@ -68,6 +80,10 @@ public class ApiV1PostController {
     }
 
 
+    @Operation(
+            summary = "글 단건 조회",
+            description = "비밀글은 작성자만 조회 가능"
+    )
     @GetMapping("{id}")
     public RsData<PostWithContentDto> getItem(@PathVariable long id) {
         Post post = postService.getItem(id).orElseThrow(
@@ -91,6 +107,10 @@ public class ApiV1PostController {
             boolean published,
             boolean listed) {}
 
+    @Operation(
+            summary = "글 작성",
+            description = "로그인 한 사용자만 글 작성 가능"
+    )
     @PostMapping()
     public RsData<PostWithContentDto> write(@RequestBody @Valid writeReqBody reqBody) {
         Member actor = rq.getCurrentActor();
@@ -107,6 +127,10 @@ public class ApiV1PostController {
 
     public record modifyReqBody(@NotBlank String title, @NotBlank String content) {}
 
+    @Operation(
+            summary = "글 수정",
+            description = "작성자와 관리자만 글 수정 가능"
+    )
     @PutMapping("{id}")
     @Transactional
     public RsData<PostWithContentDto> modify(@PathVariable long id, @RequestBody @Valid modifyReqBody reqBody) {
@@ -126,6 +150,10 @@ public class ApiV1PostController {
 
     }
 
+    @Operation(
+            summary = "글 삭제",
+            description = "작성자와 관리자만 글 삭제 가능"
+    )
     @DeleteMapping("{id}")
     public RsData<PostWithContentDto> delete(@PathVariable long id) {
         Member actor = rq.getCurrentActor();
@@ -144,6 +172,9 @@ public class ApiV1PostController {
 
     public record StatisticsResBody(long postCount, long postPublishedCount, long postListedCount) {}
 
+    @Operation(
+            summary = "통계 조회"
+    )
     @GetMapping("/statistics")
     public RsData<StatisticsResBody> getStatistics() {
         return new RsData<>(

@@ -3,6 +3,7 @@ package com.example.restapi;
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.domain.post.post.controller.ApiV1PostController;
+import com.example.restapi.domain.post.post.controller.SearchKeywordType;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.service.PostService;
 import com.example.restapi.global.security.SecurityConfig;
@@ -95,7 +96,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.currentPageNo").value(page))
                 .andExpect(jsonPath("$.data.totalPages").isNumber());
 
-        Page<Post> postPage = postService.getListedItems(page, pageSize, "", "");
+        Page<Post> postPage = postService.getListedItems(page, pageSize, SearchKeywordType.TITLE, "");
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }
@@ -127,7 +128,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.totalPages").value(3))
                 .andExpect(jsonPath("$.data.totalItems").value(7));
 
-        Page<Post> postPage = postService.getListedItems(page, pageSize, keywordType, keyword);
+        Page<Post> postPage = postService.getListedItems(page, pageSize, SearchKeywordType.TITLE, keyword);
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }
@@ -159,7 +160,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.totalPages").value(3))
                 .andExpect(jsonPath("$.data.totalItems").value(7));
 
-        Page<Post> postPage = postService.getListedItems(page, pageSize, keywordType, keyword);
+        Page<Post> postPage = postService.getListedItems(page, pageSize, SearchKeywordType.CONTENT, keyword);
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }
@@ -192,7 +193,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.totalPages").value(2))
                 .andExpect(jsonPath("$.data.totalItems").value(5));
 
-        Page<Post> postPage = postService.getMyItems(loginedMember, page, pageSize, keywordType, keyword);
+        Page<Post> postPage = postService.getMyItems(loginedMember, page, pageSize, SearchKeywordType.TITLE, keyword);
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }

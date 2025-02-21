@@ -1,4 +1,4 @@
-package com.example.restapi.global;
+package com.example.restapi.global.init;
 
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;

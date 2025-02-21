@@ -1,6 +1,7 @@
 package com.example.restapi.domain.post.post.service;
 
 import com.example.restapi.domain.member.member.entity.Member;
+import com.example.restapi.domain.post.post.controller.SearchKeywordType;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.example.restapi.domain.post.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class PostService {
         return postRepository.findAll();
     }
 
-    public Page<Post> getListedItems(int page, int pageSize, String keywordType, String keyword) {
+    public Page<Post> getListedItems(int page, int pageSize, SearchKeywordType keywordType, String keyword) {
         PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
 
         if (keyword.isBlank()) {
@@ -46,13 +47,13 @@ public class PostService {
         String likeKeyword = "%" + keyword + "%";
 
         return switch (keywordType) {
-            case "content" -> postRepository.findByListedAndContentLike(true, likeKeyword, pageRequest);
-            case "title" -> postRepository.findByListedAndTitleLike(true, likeKeyword, pageRequest);
+            case SearchKeywordType.CONTENT -> postRepository.findByListedAndContentLike(true, likeKeyword, pageRequest);
+            case SearchKeywordType.TITLE -> postRepository.findByListedAndTitleLike(true, likeKeyword, pageRequest);
             default -> postRepository.findByListed(true, pageRequest);
         };
     }
 
-    public Page<Post> getMyItems(Member author, int page, int pageSize, String keywordType, String keyword) {
+    public Page<Post> getMyItems(Member author, int page, int pageSize, SearchKeywordType keywordType, String keyword) {
         PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
 
         if (keyword.isBlank()) {
@@ -62,8 +63,8 @@ public class PostService {
         String likeKeyword = "%" + keyword + "%";
 
         return switch (keywordType) {
-            case "content" -> postRepository.findByAuthorAndContentLike(author, likeKeyword, pageRequest);
-            case "title" -> postRepository.findByAuthorAndTitleLike(author, likeKeyword, pageRequest);
+            case SearchKeywordType.CONTENT -> postRepository.findByAuthorAndContentLike(author, likeKeyword, pageRequest);
+            case SearchKeywordType.TITLE -> postRepository.findByAuthorAndTitleLike(author, likeKeyword, pageRequest);
             default -> postRepository.findByAuthor(author, pageRequest);
         };
     }
