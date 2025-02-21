@@ -18,6 +18,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.domain.Page;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -170,7 +171,8 @@ public class ApiV1PostController {
         );
     }
 
-    public record StatisticsResBody(long postCount, long postPublishedCount, long postListedCount) {}
+    public record StatisticsResBody(@NonNull long postCount, @NonNull long postPublishedCount, @NonNull long postListedCount) {
+    }
 
     @Operation(
             summary = "통계 조회"

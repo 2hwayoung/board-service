@@ -3,19 +3,28 @@ package com.example.restapi.domain.post.post.dto;
 import com.example.restapi.domain.post.post.entity.Post;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 
 @Getter
 public class PostDto {
 
+    @NonNull
     private long id;
+    @NonNull
     private LocalDateTime createdDate;
+    @NonNull
     private LocalDateTime modifiedDate;
+    @NonNull
     private String title;
+    @NonNull
     private long authorId;
+    @NonNull
     private String authorName;
+    @NonNull
     private boolean published;
+    @NonNull
     private boolean listed;
 
     public PostDto(Post post) {

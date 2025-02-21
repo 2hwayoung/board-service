@@ -2,18 +2,26 @@ package com.example.restapi.domain.post.comment.dto;
 
 import com.example.restapi.domain.post.comment.entity.Comment;
 import lombok.Getter;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 
 @Getter
 public class CommentDto {
 
+    @NonNull
     private long id;
+    @NonNull
     private String content;
+    @NonNull
     private long postId;
+    @NonNull
     private long authorId;
+    @NonNull
     private String authorName;
+    @NonNull
     private LocalDateTime createdTime;
+    @NonNull
     private LocalDateTime modifiedTime;
 
     public CommentDto(Comment comment) {

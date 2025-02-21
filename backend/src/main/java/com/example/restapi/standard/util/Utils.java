@@ -2,6 +2,7 @@ package com.example.restapi.standard.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -16,6 +17,7 @@ public class Utils {
 
         public static String toString(Object obj) {
             try {
+                mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
                 return mapper.writeValueAsString(obj);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
