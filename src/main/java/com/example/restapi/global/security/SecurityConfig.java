@@ -30,8 +30,10 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/*/posts", "/api/*/posts/{id:\\d+}", "/api/*/posts/{postId:\\d+}/comments")
                                 .permitAll()
-                                .requestMatchers("/api/*/members/join", "/api/*/members/login")
+                                .requestMatchers("/api/*/members/join", "/api/*/members/login", "/api/*/members/logout")
                                 .permitAll()
+                                .requestMatchers("/api/*/posts/statistics")
+                                .hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated()
                 )
@@ -40,6 +42,7 @@ public class SecurityConfig {
                                 XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN
                         )))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling
                                 .authenticationEntryPoint(

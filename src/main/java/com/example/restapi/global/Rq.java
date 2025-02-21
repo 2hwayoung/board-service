@@ -3,7 +3,10 @@ package com.example.restapi.global;
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;
 import com.example.restapi.global.exception.ServiceException;
+import com.example.restapi.global.security.SecurityUser;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,23 +26,11 @@ import java.util.Optional;
 public class Rq {
 
     private final HttpServletRequest request;
+    private final HttpServletResponse response;
     private final MemberService memberService;
 
-    public Member getAuthenticatedActor() {
-
-        String authorizationValue = request.getHeader("Authorization");
-        String apiKey = authorizationValue.substring("Bearer ".length());
-        Optional<Member> opActor = memberService.findByApiKey(apiKey);
-
-        if(opActor.isEmpty()) {
-            throw new ServiceException("401-1", "잘못된 인증키입니다.");
-        }
-
-        return opActor.get();
-    }
-
-    public void setLogin(String username) {
-        UserDetails user = new User(username, "", List.of());
+    public void setLogin(Member actor) {
+        UserDetails user = new SecurityUser(actor.getId(), actor.getUsername(), "", actor.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
@@ -53,18 +44,67 @@ public class Rq {
             throw new ServiceException("401-2", "로그인이 필요합니다.");
         }
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        Object principal = auth.getPrincipal();
 
-        if (userDetails == null) {
-            throw new ServiceException("401-3", "로그인이 필요합니다.");
+        if(!(principal instanceof SecurityUser user)) {
+            throw new ServiceException("401-3", "잘못된 인증 정보입니다");
         }
 
-        String username = userDetails.getUsername();
-
-        Optional<Member> opMember = memberService.findByUsername(username);
-        if (opMember.isEmpty()) {
-            throw new ServiceException("401-3", "해당 유저가 없습니다.");
-        }
-        return opMember.get();
+        return Member.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .build();
     }
+        public String getHeader(String name) {
+        return request.getHeader(name);
+    }
+
+    public String getValueFromCookie(String name) {
+        Cookie[] cookies = request.getCookies();
+
+        if(cookies == null) {
+            return null;
+        }
+
+        for(Cookie cookie : cookies) {
+            if(cookie.getName().equals(name)) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    public void setHeader(String name, String value) {
+        response.setHeader(name, value);
+    }
+
+    public void addCookie(String name, String value) {
+        Cookie accsessTokenCookie = new Cookie(name, value);
+
+        accsessTokenCookie.setDomain("localhost");
+        accsessTokenCookie.setPath("/");
+        accsessTokenCookie.setHttpOnly(true);
+        accsessTokenCookie.setSecure(true);
+        accsessTokenCookie.setAttribute("SameSite", "Strict");
+
+        response.addCookie(accsessTokenCookie);
+    }
+
+      public Member getRealActor(Member actor) {
+        return memberService.findById(actor.getId()).get();
+    }
+
+    public void removeCookie(String name) {
+        Cookie cookie = new Cookie(name, null);
+        cookie.setDomain("localhost");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "Strict");
+        cookie.setMaxAge(0);
+
+        response.addCookie(cookie);
+    }
+
 }

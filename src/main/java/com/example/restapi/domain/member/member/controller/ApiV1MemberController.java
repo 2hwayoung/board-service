@@ -3,9 +3,12 @@ package com.example.restapi.domain.member.member.controller;
 import com.example.restapi.domain.member.member.dto.MemberDto;
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;
+import com.example.restapi.domain.post.post.service.PostService;
 import com.example.restapi.global.Rq;
 import com.example.restapi.global.dto.RsData;
 import com.example.restapi.global.exception.ServiceException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -42,10 +45,10 @@ public class ApiV1MemberController {
 
     public record LoginReqBody(@NotBlank String username, @NotBlank String password) {}
 
-    public record LoginResBody(MemberDto item, String apiKey) {}
+    public record LoginResBody(MemberDto item, String apiKey, String accessToken) {}
 
     @PostMapping("/login")
-    public RsData<LoginResBody> login(@RequestBody @Valid LoginReqBody reqBody) {
+    public RsData<LoginResBody> login(@RequestBody @Valid LoginReqBody reqBody, HttpServletResponse response) {
 
         Member member = memberService.findByUsername(reqBody.username()).orElseThrow(
                 () -> new ServiceException("401-1", "잘못된 아이디입니다.")
@@ -55,24 +58,41 @@ public class ApiV1MemberController {
             throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
         }
 
+        String accessToken = memberService.genAccessToken(member);
+
+        rq.addCookie("accessToken", accessToken);
+        rq.addCookie("apiKey", member.getApiKey());
+
         return new RsData<>(
                 "200-1",
                 "%s님 환영합니다.".formatted(member.getNickname()),
                 new LoginResBody(
                         new MemberDto(member),
-                        member.getApiKey()
+                        member.getApiKey(),
+                        accessToken
                 )
         );
     }
 
+    @DeleteMapping("/logout")
+    public RsData<Void> logout() {
+
+        rq.removeCookie("accessToken");
+        rq.removeCookie("apiKey");
+
+        return new RsData<>("200-1", "로그아웃 되었습니다.");
+    }
+
+
     @GetMapping("/me")
     public RsData<MemberDto> me() {
         Member actor = rq.getCurrentActor();
+        Member realActor = rq.getRealActor(actor);
 
         return new RsData<>(
                 "200-1",
                 "내 정보 조회가 완료되었습니다.",
-                new MemberDto(actor)
+                new MemberDto(realActor)
         );
     }
 

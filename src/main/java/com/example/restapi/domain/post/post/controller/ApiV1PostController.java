@@ -94,8 +94,10 @@ public class ApiV1PostController {
     @PostMapping()
     public RsData<PostWithContentDto> write(@RequestBody @Valid writeReqBody reqBody) {
         Member actor = rq.getCurrentActor();
+        Member realActor = rq.getRealActor(actor);
 
-        Post post = postService.write(actor, reqBody.title(), reqBody.content(), reqBody.published(), reqBody.listed());
+        Post post = postService.write(realActor, reqBody.title(), reqBody.content(), reqBody.published(), reqBody.listed());
+
         return new RsData<>(
                 "201-1",
                 "%d번 글 작성이 완료되었습니다.".formatted(post.getId()),
@@ -137,6 +139,21 @@ public class ApiV1PostController {
         return new RsData<>(
                 "200-1",
                 "%d번 글 삭제가 완료되었습니다.".formatted(id)
+        );
+    }
+
+    public record StatisticsResBody(long postCount, long postPublishedCount, long postListedCount) {}
+
+    @GetMapping("/statistics")
+    public RsData<StatisticsResBody> getStatistics() {
+        return new RsData<>(
+                "200-1",
+                "통계 조회가 완료되었습니다.",
+                new StatisticsResBody(
+                        10,
+                        10,
+                        10
+                )
         );
     }
 }

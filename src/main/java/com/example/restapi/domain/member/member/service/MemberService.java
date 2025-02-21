@@ -5,6 +5,7 @@ import com.example.restapi.domain.member.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -12,6 +13,7 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final AuthTokenService authTokenService;
 
     public Member join(String username, String password, String nickname) {
 
@@ -39,5 +41,29 @@ public class MemberService {
 
     public Optional<Member> findByApiKey(String apiKey) {
         return memberRepository.findByApiKey(apiKey);
+    }
+
+    public String getAuthToken(Member member) {
+        return member.getApiKey() + " " + authTokenService.genAccessToken(member);
+    }
+
+    public Optional<Member> getMemberByAccessToken(String accessToken) {
+        Map<String, Object> payload = authTokenService.getPayload(accessToken);
+
+        if (payload == null) {
+            return Optional.empty();
+        }
+
+        long id = (long)payload.get("id");
+        String username = (String)payload.get("username");
+
+        return Optional.of(Member.builder()
+                .id(id)
+                .username(username)
+                .build());
+    }
+
+    public String genAccessToken(Member member) {
+        return authTokenService.genAccessToken(member);
     }
 }

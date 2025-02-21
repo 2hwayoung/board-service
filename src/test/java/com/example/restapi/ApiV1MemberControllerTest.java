@@ -3,6 +3,8 @@ package com.example.restapi;
 import com.example.restapi.domain.member.member.controller.ApiV1MemberController;
 import com.example.restapi.domain.member.member.entity.Member;
 import com.example.restapi.domain.member.member.service.MemberService;
+import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,6 +37,14 @@ public class ApiV1MemberControllerTest {
     @Autowired
     private MemberService memberService;
 
+    private Member loginedMember;
+    private String authToken;
+
+    @BeforeEach
+    void login() {
+        loginedMember = memberService.findByUsername("user1").get();
+        authToken = memberService.getAuthToken(loginedMember);
+    }
 
     private void checkMember(ResultActions resultActions, Member member) throws Exception {
         resultActions
@@ -142,7 +151,6 @@ public class ApiV1MemberControllerTest {
     @Test
     @DisplayName("로그인 - 성공")
     void login1() throws Exception {
-
         String username = "user1";
         String password = "user11234";
 
@@ -160,11 +168,34 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data").exists())
                 .andExpect(jsonPath("$.data.item.id").value(member.getId()))
                 .andExpect(jsonPath("$.data.item.nickname").value(member.getNickname()))
-                .andExpect(jsonPath("$.data.item.createdDate").value(member.getCreatedDate().toString()))
-                .andExpect(jsonPath("$.data.item.modifiedDate").value(member.getModifiedDate().toString()))
-                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()));
+                .andExpect(jsonPath("$.data.item.createdDate").value(matchesPattern(member.getCreatedDate().toString().replaceAll("0+$", "") + ".*")))
+                .andExpect(jsonPath("$.data.item.modifiedDate").value(matchesPattern(member.getModifiedDate().toString().replaceAll("0+$", "") + ".*")))
+                .andExpect(jsonPath("$.data.apiKey").value(member.getApiKey()))
+                .andExpect(jsonPath("$.data.accessToken").exists());
 
+        resultActions
+                .andExpect(mvcResult -> {
+                    Cookie apiKey = mvcResult.getResponse().getCookie("apiKey");
 
+                    assertThat(apiKey).isNotNull();
+                    assertThat(apiKey.getName()).isEqualTo("apiKey");
+                    assertThat(apiKey.getValue()).isNotBlank();
+                    assertThat(apiKey.getDomain()).isEqualTo("localhost");
+                    assertThat(apiKey.getPath()).isEqualTo("/");
+                    assertThat(apiKey.isHttpOnly()).isTrue();
+                    assertThat(apiKey.getSecure()).isTrue();
+
+                    Cookie accessToken = mvcResult.getResponse().getCookie("accessToken");
+
+                    assertThat(accessToken).isNotNull();
+                    assertThat(accessToken.getName()).isEqualTo("accessToken");
+                    assertThat(accessToken.getValue()).isNotBlank();
+                    assertThat(accessToken.getDomain()).isEqualTo("localhost");
+                    assertThat(accessToken.getPath()).isEqualTo("/");
+                    assertThat(accessToken.isHttpOnly()).isTrue();
+                    assertThat(accessToken.getSecure()).isTrue();
+
+                });
     }
 
     @Test
@@ -235,11 +266,40 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.msg").value("password : NotBlank : must not be blank"));
     }
 
-    private ResultActions meRequest(String apiKey) throws Exception {
+    @Test
+    @DisplayName("로그아웃")
+    void logout() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                delete("/api/v1/members/logout")
+        );
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("logout"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("로그아웃 되었습니다."));
+
+
+        resultActions.
+                andExpect(
+                        mvcResult -> {
+                            Cookie apiKey = mvcResult.getResponse().getCookie("apiKey");
+                            assertThat(apiKey).isNotNull();
+                            assertThat(apiKey.getMaxAge()).isZero();
+
+                            Cookie accessToken = mvcResult.getResponse().getCookie("accessToken");
+                            assertThat(accessToken).isNotNull();
+                            assertThat(accessToken.getMaxAge()).isZero();
+                        }
+                );
+    }
+
+    private ResultActions meRequest(String authToken) throws Exception {
         return mvc
                 .perform(
                         get("/api/v1/members/me")
-                                .header("Authorization", "Bearer " + apiKey)
+                                .header("Authorization", "Bearer " + authToken)
 
                 )
                 .andDo(print());
@@ -249,9 +309,11 @@ public class ApiV1MemberControllerTest {
     @DisplayName("내 정보 조회")
     void me1() throws Exception {
 
-        String apiKey = "user1";
+        String apiKey = loginedMember.getApiKey();
+        String token = memberService.getAuthToken(loginedMember);
+        String expiredToken = "";
 
-        ResultActions resultActions = meRequest(apiKey);
+        ResultActions resultActions = meRequest(token);
 
         resultActions
                 .andExpect(status().isOk())
@@ -260,8 +322,7 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.code").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("내 정보 조회가 완료되었습니다."));
 
-        Member member = memberService.findByApiKey(apiKey).get();
-        checkMember(resultActions, member);
+        checkMember(resultActions, loginedMember);
 
     }
 
@@ -269,9 +330,7 @@ public class ApiV1MemberControllerTest {
     @DisplayName("내 정보 조회 - 실패 - 잘못된 api key")
     void me2() throws Exception {
 
-        String apiKey = "";
-
-        ResultActions resultActions = meRequest(apiKey);
+        ResultActions resultActions = meRequest("");
 
         resultActions
                 .andExpect(status().isUnauthorized())
@@ -279,6 +338,26 @@ public class ApiV1MemberControllerTest {
 //                .andExpect(handler().methodName("me"))
                 .andExpect(jsonPath("$.code").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("잘못된 인증키입니다."));
+
+    }
+
+    @Test
+    @DisplayName("내 정보 조회 - 만료된 accessToken 사용")
+    void me3() throws Exception {
+
+        String apiKey = loginedMember.getApiKey();
+        String expiredToken = apiKey + " eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MywidXNlcm5hbWUiOiJ1c2VyMSIsImlhdCI6MTczOTI0MDc0NiwiZXhwIjoxNzM5MjQwNzUxfQ.tm-lhZpkazdOtshyrdtq0ioJCampFzx8KBf-alfVS4JUp7zJJchYdYtjMfKtW7c3t4Fg5fEY12pPt6naJjhV-Q";
+
+        ResultActions resultActions = meRequest(expiredToken);
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(jsonPath("$.code").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("내 정보 조회가 완료되었습니다."));
+
+        checkMember(resultActions, loginedMember);
 
     }
 
