@@ -1,7 +1,9 @@
-import { components } from "@/lib/backend/apiV1/schema";
+import { paths } from "@/lib/backend/apiV1/schema";
+import createClient from "openapi-fetch";
 
-type PostDto = components["schemas"]["PostDto"];
-type PostItemPageDto = components["schemas"]["PageDto"];
+const client = createClient<paths>({
+  baseUrl: "http://localhost:8080",
+});
 
 export default async function Page({
   searchParams,
@@ -13,16 +15,17 @@ export default async function Page({
 }) {
   const { keywordType = "TITLE", keyword = "" } = await searchParams;
 
-  const response = await fetch(
-    `http://localhost:8080/api/v1/posts?keywordType=${keywordType}&keyword=${keyword}`
-  );
+  const response = await client.GET("/api/v1/posts", {
+    params: {
+      query: {
+        keyword,
+        keywordType,
+      },
+    },
+  });
 
-  if (!response.ok) {
-    throw new Error("에러");
-  }
-
-  const rsData = await response.json();
-  const pageDto: PostItemPageDto = rsData.data;
+  const rsData = response.data!!;
+  const pageDto = rsData.data;
 
   return (
     <div>
@@ -38,8 +41,8 @@ export default async function Page({
 
       <form>
         <select name="keywordType" defaultValue={keywordType}>
-          <option value="title">제목</option>
-          <option value="content">내용</option>
+          <option value="TITLE">제목</option>
+          <option value="CONTENT">내용</option>
         </select>
         <input
           placeholder="검색어 입력"
@@ -51,7 +54,7 @@ export default async function Page({
       </form>
 
       <ul>
-        {pageDto.items.map((item: PostDto) => {
+        {pageDto.items.map((item) => {
           return (
             <li className="border-2 border-red-500 my-2 p-2" key={item.id}>
               <div>id : {item.id}</div>
