@@ -25,10 +25,11 @@ public class DevInitData {
     public ApplicationRunner devApplicationRunner() {
         return args -> {
             genApiJsonFile("http://localhost:8080/v3/api-docs/apiV1", "apiV1.json");
-            runCmd(List.of("/Users/hwayoung/.nvm/versions/node/v18.17.1/bin/npx",
-                    "--package", "typescript", "--package", "openapi-typescript", "--package", "punycode",
-                    "openapi-typescript", "apiV1.json", "-o", "schema.d.ts"));
-        };
+            runCmd(List.of("/bin/bash", "-c",
+                    "export PATH=$HOME/.nvm/versions/node/v18.17.1/bin:$PATH && " +
+                    "npx --package typescript --package openapi-typescript --package punycode " +
+                    "openapi-typescript apiV1.json -o ../frontend/src/lib/backend/apiV1/schema.d.ts"));
+            };
     }
 
     public void genApiJsonFile(String url, String filename) {
