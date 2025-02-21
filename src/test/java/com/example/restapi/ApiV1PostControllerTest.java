@@ -192,8 +192,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.totalPages").value(2))
                 .andExpect(jsonPath("$.data.totalItems").value(5));
 
-        Member author = memberService.getMemberByAccessToken(authToken).get();
-        Page<Post> postPage = postService.getMyItems(author, page, pageSize, keywordType, keyword);
+        Page<Post> postPage = postService.getMyItems(loginedMember, page, pageSize, keywordType, keyword);
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }
@@ -486,8 +485,9 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("통계")
-    void statistics() throws Exception {
+    @DisplayName("통계 - 관리자 기능 - 관리자 접근")
+    @WithUserDetails("admin")
+    void statisticsAdmin() throws Exception {
         ResultActions resultActions = mvc.perform(
                         get("/api/v1/posts/statistics")
                 )
@@ -501,5 +501,19 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.postCount").value(10))
                 .andExpect(jsonPath("$.data.postPublishedCount").value(10))
                 .andExpect(jsonPath("$.data.postListedCount").value(10));
+    }
+
+    @Test
+    @DisplayName("통계 - 관리자 기능 - user1 접근")
+    @WithUserDetails("user1")
+    void statisticsUser() throws Exception {
+        ResultActions resultActions = mvc.perform(
+                        get("/api/v1/posts/statistics")
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("접근 권한이 없습니다."));
     }
 }

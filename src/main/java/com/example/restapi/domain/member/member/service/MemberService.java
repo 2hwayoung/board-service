@@ -44,7 +44,7 @@ public class MemberService {
     }
 
     public String getAuthToken(Member member) {
-        return authTokenService.genAccessToken(member);
+        return member.getApiKey() + " " + authTokenService.genAccessToken(member);
     }
 
     public Optional<Member> getMemberByAccessToken(String accessToken) {
@@ -61,5 +61,9 @@ public class MemberService {
                 .id(id)
                 .username(username)
                 .build());
+    }
+
+    public String genAccessToken(Member member) {
+        return authTokenService.genAccessToken(member);
     }
 }
