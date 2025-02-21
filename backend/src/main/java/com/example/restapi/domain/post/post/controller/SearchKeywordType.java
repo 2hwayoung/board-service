@@ -6,8 +6,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum SearchKeywordType {
-    TITLE("title"),
-    CONTENT("content");
+    TITLE("TITLE"),
+    CONTENT("CONTENT");
 
     private final String value;
 }

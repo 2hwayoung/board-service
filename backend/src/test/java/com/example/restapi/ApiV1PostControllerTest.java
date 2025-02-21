@@ -96,7 +96,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.currentPageNo").value(page))
                 .andExpect(jsonPath("$.data.totalPages").isNumber());
 
-        Page<Post> postPage = postService.getListedItems(page, pageSize, SearchKeywordType.TITLE, "");
+        Page<Post> postPage = postService.getListedItems(page, pageSize, null, "");
         List<Post> posts = postPage.getContent();
         checkPosts(resultActions, posts);
     }
@@ -106,14 +106,14 @@ public class ApiV1PostControllerTest {
     void items2() throws Exception {
         int page = 1;
         int pageSize = 3;
-        String keywordType = "title";
+        SearchKeywordType keywordType = SearchKeywordType.TITLE;
         String keyword = "title";
 
         ResultActions resultActions = mvc
                 .perform(get("/api/v1/posts")
                         .param("page", String.valueOf(page))
                         .param("pageSize", String.valueOf(pageSize))
-                        .param("keywordType", keywordType)
+                        .param("keywordType", String.valueOf(keywordType))
                         .param("keyword", keyword))
                 .andDo(print());
 
@@ -138,14 +138,14 @@ public class ApiV1PostControllerTest {
     void items3() throws Exception {
         int page = 1;
         int pageSize = 3;
-        String keywordType = "content";
+        SearchKeywordType keywordType = SearchKeywordType.CONTENT;
         String keyword = "content";
 
         ResultActions resultActions = mvc
                 .perform(get("/api/v1/posts")
                         .param("page", String.valueOf(page))
                         .param("pageSize", String.valueOf(pageSize))
-                        .param("keywordType", keywordType)
+                        .param("keywordType", String.valueOf(keywordType))
                         .param("keyword", keyword))
                 .andDo(print());
 
@@ -170,7 +170,7 @@ public class ApiV1PostControllerTest {
     void items4() throws Exception {
         int page = 1;
         int pageSize = 3;
-        String keywordType = "";
+        SearchKeywordType keywordType = SearchKeywordType.TITLE;
         String keyword = "";
 
         ResultActions resultActions = mvc
@@ -178,7 +178,7 @@ public class ApiV1PostControllerTest {
                         .header("Authorization", "Bearer " + authToken)
                         .param("page", String.valueOf(page))
                         .param("pageSize", String.valueOf(pageSize))
-                        .param("keywordType", keywordType)
+                        .param("keywordType", String.valueOf(keywordType))
                         .param("keyword", keyword))
                 .andDo(print());
 
