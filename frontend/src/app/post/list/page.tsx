@@ -36,6 +36,20 @@ export default async function Page({
 
       <hr />
 
+      <form>
+        <select name="keywordType" defaultValue={keywordType}>
+          <option value="title">제목</option>
+          <option value="content">내용</option>
+        </select>
+        <input
+          placeholder="검색어 입력"
+          type="text"
+          name="keyword"
+          defaultValue={keyword}
+        />
+        <input type="submit" value="검색" />
+      </form>
+
       <ul>
         {pageDto.items.map((item: PostDto) => {
           return (
