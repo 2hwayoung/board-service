@@ -98,4 +98,11 @@ public class Post extends BaseTime {
                         () -> new ServiceException("404-2", "존재하지 않는 댓글입니다.")
                 );
     }
+
+    public boolean getHandleAuthority(Member actor) {
+        if (actor == null) return false;
+        if (actor.isAdmin()) return true;
+
+        return actor.equals(this.author);
+    }
 }

@@ -1,23 +1,21 @@
 package com.example.restapi.standard.util;
 
+import com.example.restapi.global.app.AppConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
 public class Utils {
     public static class Json {
-        private static final ObjectMapper mapper = new ObjectMapper();
+        private static final ObjectMapper mapper = AppConfig.getObjectMapper();
 
         public static String toString(Object obj) {
             try {
-                mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
                 return mapper.writeValueAsString(obj);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);

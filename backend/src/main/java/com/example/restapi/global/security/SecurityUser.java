@@ -9,9 +9,11 @@ import java.util.Collection;
 @Getter
 public class SecurityUser extends User {
     private final long id;
+    private final String nickname;
 
-    public SecurityUser(long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public SecurityUser(long id, String username, String password, String nickname, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.id = id;
+        this.nickname = nickname;
     }
 }

@@ -2,6 +2,7 @@ package com.example.restapi.domain.post.post.dto;
 
 import com.example.restapi.domain.post.post.entity.Post;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,10 @@ public class PostWithContentDto {
     private boolean published;
     @NonNull
     private boolean listed;
+
+    @NonNull
+    @Setter
+    private boolean canActorHandle;
 
     public PostWithContentDto(Post post) {
         this.id = post.getId();

@@ -56,10 +56,12 @@ public class MemberService {
 
         long id = (long)payload.get("id");
         String username = (String)payload.get("username");
+        String nickname = (String) payload.get("nickname");
 
         return Optional.of(Member.builder()
                 .id(id)
                 .username(username)
+                .nickname(nickname)
                 .build());
     }
 
