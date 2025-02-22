@@ -1,6 +1,6 @@
 "use client";
 
-import ComboboxDemo from "@/app/ui-test/ComboboxDem";
+import Combobox from "@/components/ui/custom/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { components } from "@/lib/backend/apiV1/schema";
@@ -24,7 +24,7 @@ export default function ClientPage({
   const pageDto = rsData.data;
 
   return (
-    <div>
+    <div className="w-1/2">
       <h1>글 목록</h1>
 
       <div>응답 코드 : {rsData.code}</div>
@@ -58,7 +58,7 @@ export default function ClientPage({
         </select> */}
 
         <div className="flex gap-3 py-3">
-          <ComboboxDemo
+          <Combobox
             itemList={[
               { value: "title", label: "제목" },
               { value: "content", label: "내용" },
@@ -78,7 +78,7 @@ export default function ClientPage({
         <label className="ml-5" htmlFor="">
           페이지당 행 개수 :
         </label>
-        <ComboboxDemo
+        <Combobox
           itemList={[
             { value: "10", label: "10" },
             { value: "30", label: "20" },

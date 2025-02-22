@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function ComboboxDemo({
+export function Combobox({
   itemList,
   title,
 }: {
@@ -73,4 +73,4 @@ export function ComboboxDemo({
   );
 }
 
-export default ComboboxDemo;
+export default Combobox;

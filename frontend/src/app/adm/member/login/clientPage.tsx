@@ -1,7 +1,15 @@
 "use client";
 import client from "@/lib/backend/client";
+import {
+  LoginMemberContext,
+  useLoginMember,
+} from "@/stores/auth/loginMemberStore";
+import { useRouter } from "next/navigation";
+import { use } from "react";
 
 export default function ClientPage() {
+  const router = useRouter();
+  const { setLoginMember } = use(LoginMemberContext);
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -33,7 +41,8 @@ export default function ClientPage() {
       return;
     }
 
-    window.location.href = "/post/list";
+    setLoginMember(response.data.data.item);
+    router.replace("/");
   }
 
   return (
