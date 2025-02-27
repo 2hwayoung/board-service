@@ -3,6 +3,9 @@ autoLinkIssue: true
 autoCloseIssue: true
 autoDeleteBranch: true
 commentMessage: 'Branch ${branchName} created for issue: ${issue.title}'
+copyIssueLabelsToPR: true
+copyIssueAssigneeToPR: true
+copyIssueProjectsToPR: true
 branches:
   - label: hotfix
     name: main
@@ -26,6 +29,3 @@ branches:
   - label: '*'
     prefix: issue/
 
-copyIssueLabelsToPR: true
-copyIssueAssigneeToPR: true
-copyIssueProjectsToPR: true
