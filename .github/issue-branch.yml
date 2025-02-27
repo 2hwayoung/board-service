@@ -1,4 +1,5 @@
-branchName: 'issue-${issue.number}-${issue.title[0,64],}'
+mode: chatops
+branchName: '${issue.number}-${issue.title[0,64],}'
 commentMessage: 'Branch ${branchName} created for issue: ${issue.title}'
 autoLinkIssue: true
 autoCloseIssue: true
