@@ -7,6 +7,8 @@ autoDeleteBranch: true
 copyIssueLabelsToPR: true
 copyIssueAssigneeToPR: true
 copyIssueProjectsToPR: true
+experimental:
+  branchNameArgument: true
 branches:
   - label: hotfix
     name: main
