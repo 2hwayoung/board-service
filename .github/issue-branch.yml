@@ -1,4 +1,4 @@
-branchName: '${issue.number}-${issue.title[0,64]}'
+branchName: 'issue-${issue.number}-${issue.title[0,64],}'
 autoLinkIssue: true
 autoCloseIssue: true
 autoDeleteBranch: true
