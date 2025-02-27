@@ -1,7 +1,5 @@
 name: Create Issue Branch
 on:
-  issues:
-    types: [ assigned, reopened, closed ]
   issue_comment:
     types: [ created ]
   pull_request:
