@@ -22,3 +22,4 @@ grep "ROLLBACK" ./mysql_logs/general.log
 ```
 
 test
+이슈 자동화 테스트
