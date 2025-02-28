@@ -20,6 +20,3 @@ Or search for specific keywords:
 grep "COMMIT" ./mysql_logs/general.log
 grep "ROLLBACK" ./mysql_logs/general.log
 ```
-
-2
-test
